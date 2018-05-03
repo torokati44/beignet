@@ -48,7 +48,8 @@ namespace gbe
                 const GenRegister &intermedia,
                 const GenRegister &replacement) : insn(insn), intermedia(intermedia), replacement(replacement)
     {
-      assert(insn.opcode == SEL_OP_MOV || insn.opcode == SEL_OP_ADD);
+      assert(insn.opcode == SEL_OP_MOV);
+      assert(&(insn.src(0)) == &replacement);
       assert(&(insn.dst(0)) == &intermedia);
       this->elements = CalculateElements(intermedia, insn.state.execWidth);
       replacementOverwritten = false;
@@ -292,7 +293,7 @@ namespace gbe
       if (insn.opcode == SEL_OP_MOV)
         addToReplaceInfoMap(insn);
 
-      doZeroAddedOptimization(insn);
+      //doZeroAddedOptimization(insn);
     }
     cleanReplaceInfoMap();
   }

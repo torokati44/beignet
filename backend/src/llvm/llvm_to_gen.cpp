@@ -274,12 +274,19 @@ namespace gbe
     llvm::DiagnosticPrinterRawOStream printer;
     bool _has_errors;
   };
-  
-  void gbeDiagnosticHandler(const llvm::DiagnosticInfo &diagnostic, void *context)
-  {
-    gbeDiagnosticContext *dc = reinterpret_cast<gbeDiagnosticContext*>(context);
-    dc->process(diagnostic);
-  }
+
+  class diaghandler : public DiagnosticHandler {
+    gbeDiagnosticContext *dc;
+
+    public:
+    diaghandler(gbeDiagnosticContext *dc) : dc(dc) {}
+
+    virtual bool handleDiagnostics(const DiagnosticInfo &DI) {
+        dc->process(DI);
+        return true;
+    }
+
+  };
 
   bool llvmToGen(ir::Unit &unit, const void* module,
                  int optLevel, bool strictMath, int profiling, std::string &errors)
@@ -322,7 +329,7 @@ namespace gbe
     DataLayout DL(&mod);
     
     gbeDiagnosticContext dc;
-    mod.getContext().setDiagnosticHandler(&gbeDiagnosticHandler,&dc);
+    mod.getContext().setDiagnosticHandler(std::unique_ptr<DiagnosticHandler>(new diaghandler(&dc)));
 
 #if LLVM_VERSION_MAJOR * 10 + LLVM_VERSION_MINOR >= 37
     mod.setDataLayout(DL);
